@@ -1,0 +1,298 @@
+#################### 全局配置 ####################
+mixed-port: 7890 # 混合端口 同时支持 HTTP(S) 和 SOCKS5 协议
+socks-port: 7891 # socks4/4a/5 代理端口
+port: 7892 # http(s) 代理端口
+redir-port: 7893 # redirect 透明代理端口,仅能代理 TCP 流量
+tproxy-port: 7894 # tproxy 透明代理端口,可代理 TCP 与 UDP 流量
+
+allow-lan: true # 允许局域网连接 false/true
+bind-address: "*" # 绑定地址
+lan-allowed-ips: # 允许连接的 IP 地址段,仅作用于 allow-lan 为 true, 默认值为 0.0.0.0/0 和 ::/0
+  - "0.0.0.0/0"
+  - "::/0"
+# lan-disallowed-ips: # 禁止连接的 IP 地址段, 黑名单优先级高于白名单, 默认值为空
+  # - "192.168.0.3/32"
+# authentication: # 用户验证 http(s)/socks/mixed 代理的用户验证
+#   - "clash:meta" # 用户:密码
+skip-auth-prefixes: # 跳过验证的IP段
+  - "127.0.0.1/8"
+  - "::1/128"
+
+ipv6: true # IPv6 是否允许内核接受 IPv6 流量
+tcp-concurrent: true # TCP 并发 如果域名解析结果对应多个IP,并发请求所有IP,选择握手最快的IP进行通讯
+keep-alive-interval: 30 # TCP Keep Alive 间隔,单位 min ,控制 Clash 发出 TCP Keep Alive 包的间隔,减少移动设备耗电问题的临时措施
+unified-delay: false # 统一延迟
+# interface-name: "wlan0" # 出站接口,与 auto-detect-interface 冲突
+# routing-mark:  # 路由标记 配置 fwmark 仅用于 Linux
+
+tls: # TLS 目前仅用于 API 的 https
+  certificate: "./tls/ca_cert.pem" # 证书 PEM 格式,或者 证书的路径
+  private-key: "./tls/ca_key.pem" # 证书对应的私钥 PEM 格式,或者私钥路径
+  # custom-certifactes:
+    # - |
+      # -----BEGIN CERTIFICATE-----
+      # format/pem...
+      # -----END CERTIFICATE-----
+
+geodata-mode: true # GEOIP 数据模式,更改 geoip 使用文件为 mmdb 或者 dat ,可选,true 为 dat
+geosite-matcher: "succinct" # GeoSite 匹配器使用的实现 succinct (default, same as rule-set)/mph (from V2Ray, also `hybrid` in Xray)
+geodata-loader: "memconservative" # GEO 文件加载模式 standard/memconservative
+geo-auto-update: true # 自动更新 GEO 是否启用,可选 true/false
+geo-update-interval: 12 # 更新间隔,单位 h
+geox-url: # 自定 GEO 下载地址
+  geoip: "https://code-dev.webcache.cn/gh/MetaCubeX/meta-rules-dat@release/geoip.dat"
+  geosite: "https://code-dev.webcache.cn/gh/MetaCubeX/meta-rules-dat@release/geosite.dat"
+  mmdb: "https://code-dev.webcache.cn/gh/MetaCubeX/meta-rules-dat@release/country.mmdb"
+  asn: "https://code-dev.webcache.cn/gh/xishang0128/geoip@release/GeoLite2-ASN.mmdb"
+
+external-ui: "./ui" # 外部用户界面的路径
+external-ui-name: "metacubexd" # 自定义外部用户界面名字
+external-ui-url: "https://github.tmby.shop/https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip" # 自定义外部用户界面下载地址
+
+mode: "rule" # 运行模式 rule/global/direct ,暂不支持 script
+log-level: "silent" # 日志级别 silent/error/warning/info/debug
+find-process-mode: "strict" # 进程模式 off/strict/always
+global-client-fingerprint: "chrome" # 全局客户端指纹,可选: chrome/firefox/safari/iOS/android/edge/360/qq/random ,优先低于 proxy 内的 client-fingerprint ,目前支持开启 TLS 传输的 TCP/grpc/WS/HTTP , 支持协议有 VLESS,Vmess 和 trojan
+global-ua: "Mozilla/5.0" # 全局 UA ,默认 clash.meta
+
+profile: # 缓存
+  store-selected: false # 储存 API 对策略组的选择,以供下次启动时使用
+  store-fake-ip: false # fake-ip 缓存,域名再次发生连接时,使用原有映射地址
+
+external-controller: "0.0.0.0:9090" # API 监听地址
+external-controller-tls: "0.0.0.0:9443" # HTTPS-API 监听地址,需要配置 tls 部分证书和其私钥配置,使用 TLS 也必须填写 external-controller
+secret: "" # API 的访问密钥
+
+#################### 试验配置 ####################
+# experimental:
+  # quic-go-disable-gso: false # 禁用GSO
+  # quic-go-disable-ecn: false # 禁用ECN
+  # dialer-ip4p-convert: false # 启用IP4P地址转换
+
+#################### HOSTS ####################
+# hosts: # hosts 类似于 /etc/hosts , 仅支持配置单个 IP
+  # '*.clash.dev': 127.0.0.1
+  # 'alpha.clash.dev': '::1'
+  # test.com: [1.1.1.1, 2.2.2.2]
+  # baidu.com: google.com # 只允许配置一个别名
+  # home.lan: lan # lan 为特别字段,将加入本地所有网卡的地址
+
+#################### 域名嗅探 ####################
+sniffer:
+  enable: true # 是否启用,可选 true/false
+  force-dns-mapping: true # 对 redir-host 类型识别的流量进行强制嗅探
+  parse-pure-ip: true # 对所有未获取到域名的流量进行强制嗅探
+  override-destination: true # 是否使用嗅探结果作为实际访问,默认为 true
+  sniff: # TLS 和 QUIC 默认如果不配置 ports 默认嗅探 443
+    QUIC:
+      ports: [443, 8443]
+    TLS:
+      ports: [443, 8443]
+    HTTP: # 默认嗅探 80
+      ports: [80, 8080-8880]
+  skip-domain: # 需要跳过嗅探的域名,主要解决部分站点sni字段非域名,导致嗅探结果异常的问题,如米家设备
+    - "Mijia Cloud"
+
+#################### TUN ####################
+tun:
+  enable: true # 是否启用,可选 true/false
+  stack: "mixed" # tun 模式堆栈 system/gvisor/mixed
+  device: "Clash" # 指定 tun 网卡名称, MacOS 设备只能使用 utun 开头的网卡名
+  auto-route: true # 自动设置全局路由,可以自动将全局流量路由进入 tun 网卡
+  auto-detect-interface: true # 自动选择流量出口接口,多出口网卡同时连接的设备建议手动指定出口网卡
+  strict-route: false # true/false 严格路由,所有连接路由到 tun 来防止泄漏,但设备将无法被其他设备访问
+  dns-hijack: # 需要劫持的 DNS
+    - "any:53"
+  mtu: 1280 # 最大传输单元 默认：9000
+  udp-timeout: 300 # UDP NAT 过期时间,单位 s ,默认为 300 = 5 分钟
+  endpoint-independent-nat: false # 启用独立于端点的 NAT,性能可能会略有下降,所以不建议在不需要的时候开启
+
+#################### DNS ####################
+dns:
+  enable: true # 关闭将使用系统 DNS
+  cache-algorithm: "arc" # 缓存算法 lru/lfu/arc
+  use-hosts: false # 是否查询配置中的 hosts,默认 true
+  prefer-h3: true # 开启 DoH 支持 HTTP/3 ,将并发尝试
+  respect-rules: true # dns 连接跟随 rules，需配置 proxy-server-nameserver
+  listen: "0.0.0.0:1053" # 开启 DNS 服务器监听
+  ipv6: true # false 将返回 AAAA 的空结果
+  ipv6-timeout: 300 # 单位 ms ,内部双栈并发时,向上游查询 AAAA 时,等待 AAAA 的时间,默认 100ms
+  enhanced-mode: "fake-ip" # DNS 处理模式 normal/fake-ip/redir-host
+  fake-ip-range: "198.18.0.1/16" # fakeip 下的 IP 段设置 198.18.0.1/16 28.0.0.1/8
+  fake-ip-filter: # fakeip 过滤,以下地址不会下发 fakeip 映射用于连接
+    - "*"
+    - "+.invalid.*"
+    - "+.lan"
+    - "+.local.*"
+    - "+.localhost"
+    # NTP
+    - "+.ntp.*"
+    - "ntp*.*.com"
+    - "time*.*.com"
+    # 国内顶级域名
+    - "+.ac.cn"
+    - "+.com.cn"
+    - "+.edu.cn"
+    - "+.gov.cn"
+    - "+.mil.cn"
+    - "+.net.cn"
+    - "+.org.cn"
+    # 腾讯
+    - "+.qpic.cn"
+    - "localhost.*.qq.com"
+    - "+.y.qq.com"
+    # 网易
+    - "+.music.163.com"
+    # 微软
+    - "*.msftconnecttest.com"
+    - "*.msftncsi.com"
+    - "*.windowsupdate.com"
+  nameserver-policy: # 指定的解析服务,没匹配到时使用 nameserver/fallback 并发查询
+    "geosite:private,cn": # 国内域名策略
+      - "https://223.5.5.5/dns-query" # Alibaba DoH
+      - "https://223.6.6.6/dns-query"
+    "geosite:!private,!cn": # 国外域名策略
+      - "https://1.1.1.1/dns-query" # Cloudflare DoH
+      - "https://1.0.0.1/dns-query"
+  nameserver: # 默认域名解析,如不配置 fallback/proxy-server-nameserver ,则都由 nameserver 解析
+    - "https://223.5.5.5/dns-query"
+    - "https://223.6.6.6/dns-query"
+  proxy-server-nameserver:
+    - "https://223.5.5.5/dns-query"
+    - "https://223.6.6.6/dns-query"
+
+#################### 出站代理 ####################
+proxies:
+  - {name: ⚫ DNS劫持, type: dns}
+
+#################### 代理集合 ####################
+proxy_providers_header: &proxy_providers_header
+  User-Agent:
+    - "clash"
+    - "loon"
+    - "meta"
+    - "mihomo"
+    - "passwall"
+    - "quantumult%20x"
+    - "sagernet"
+    - "shadowrocket"
+    - "shadowsocks"
+    - "ssrplus"
+    - "stash"
+    - "surfboard"
+    - "surge"
+    - "v2rayn"
+    - "v2rayng"
+proxy_providers_health_check: &proxy_providers_health_check
+  url: "http://captive.apple.com/" # 使⽤ https ,防⽌⽆良⽼板伪造延迟! https://www.gstatic.com/generate_204 https://cp.cloudflare.com
+  interval: 60 # 测试间隔,如不为 0 则启用定时测试,单位 s
+  timeout: 5000 # 健康检查超时时间,单位为 ms
+  lazy: false # 懒惰状态，默认为true,未选择到当前策略组时，不进行测试
+  expected-status: "200" # 期望状态,只有当响应状态码与期望状态一致时才认为节点可用
+proxy_providers_override: &proxy_providers_override
+  udp: true # 是否允许 UDP 通过代理
+  ip-version: "dual" # 设置节点使用 IP 版本,默认使用 dual ; dual/ipv4/ipv6/ipv4-prefer/ipv6-prefer
+
+proxy-providers:
+  "SakuraCat": # 机场名称
+    type: http # 必须, provider 类型,可选 http/file
+    url: https://conv.lynx3.top/provider?url=https%3A%2F%2F0b96e976-9ec3-44c0-aa2b-30bf8b0792ea.com%2Fapi%2Fv1%2Fclient%2Fsubscribe%3Ftoken%3D6040efb108614cb278ee535206540f11 # 注意!如果您的链接中带有“&”字符,请删掉.
+    path: ./proxy_providers/Subscription_1.yaml # 机场配置保存位置
+    # proxy: 🌐 绕过代理
+    header:
+      <<: *proxy_providers_header # 引用相关锚点
+    health-check: # 延迟测试
+      enable: true # 是否启用,可选 true/false
+      <<: *proxy_providers_health_check
+    override: # 覆写节点内容
+      <<: *proxy_providers_override
+      additional-prefix: "【SC】" # 为节点名称添加固定前缀
+    exclude-filter: "(?i)前往|加入|群|流量|过期|回国|CN|安徽|北京|重庆|福建|甘肃|广东|广西|贵州|海南|河北|黑龙江|河南|湖北|湖南|吉林|江苏|江西|辽宁|内蒙古|宁夏|青海|山东|山西|陕西|上海|四川|天津|西藏|新疆|云南|浙江" # 过滤回国等..
+  #   exclude-type: "ss|http" # 根据节点类型排除
+  # "Subscription_2":
+  #   type: http
+  #   url: "订阅"
+  #   path: "./proxy_providers/Subscription_2.yaml"
+  #   proxy: "🧭 代理规则"
+  #   header:
+  #     <<: *proxy_providers_header
+  #   health-check:
+  #     enable: true
+  #     <<: *proxy_providers_health_check
+  #   override:
+  #     <<: *proxy_providers_override
+  #     additional-prefix: "【02】| "
+  #   exclude-filter: "(?i)前往|加入|群|流量|过期|回国|CN|安徽|北京|重庆|福建|甘肃|广东|广西|贵州|海南|河北|黑龙江|河南|湖北|湖南|吉林|江苏|江西|辽宁|内蒙古|宁夏|青海|山东|山西|陕西|上海|四川|天津|西藏|新疆|云南|浙江"
+  #   exclude-type: "ss|http"
+
+#################### 策略组 ####################
+proxy_groups_use_load_balance: &proxy_groups_use_load_balance {type: load-balance, include-all-providers: true, strategy: consistent-hashing} # strategy: consistent-hashing/round-robin/sticky-sessions
+proxy_groups_prefer_proxy: &proxy_groups_prefer_proxy {type: select, proxies: [🧭 代理规则, 🌐 绕过代理, 🌸 自动切换, 🗺 手动选择, 🏳️‍🌈 国家分组, 🇺🇸 美国, 🇯🇵 日本, 🇨🇳 台湾, 🇸🇬 新加坡, 🇪🇺 欧洲, 🌏 亚洲, 🇺🇳 其他]}
+proxy_groups_prefer_direct: &proxy_groups_prefer_direct {type: select, proxies: [🌐 绕过代理, 🧭 代理规则, 🌸 自动切换, 🗺 手动选择, 🏳️‍🌈 国家分组, 🇺🇸 美国, 🇯🇵 日本, 🇨🇳 台湾, 🇸🇬 新加坡, 🇪🇺 欧洲, 🌏 亚洲, 🇺🇳 其他]}
+
+proxy-groups:
+  - {name: 🧭 代理规则, type: select, proxies: [🗺 手动选择, 🏳️‍🌈 国家分组, 🌸 自动切换, 🌐 绕过代理]}
+  - {name: 🗺 手动选择, type: select, include-all-providers: true}
+  - {name: 🏳️‍🌈 国家分组, type: select, proxies: [🇺🇸 美国, 🇯🇵 日本, 🇨🇳 台湾, 🇸🇬 新加坡, 🇪🇺 欧洲, 🌏 亚洲, 🇺🇳 其他]}
+  - {name: 📺 哔哩哔哩, <<: *proxy_groups_prefer_direct}
+  - {name: ✉ 谷歌推送, <<: *proxy_groups_prefer_direct}
+  - {name: 📺 国际媒体, <<: *proxy_groups_prefer_proxy}
+  - {name: 🤖 人工智能, <<: *proxy_groups_prefer_proxy}
+  - {name: 🐋 漏网之鱼, <<: *proxy_groups_prefer_proxy}
+  - {name: 🚫 广告追踪, type: select, proxies: [🔴 拦截数据, ⚪ 绕过规则]}
+  - {name: 🇶 Q U I C, type: select, proxies: [🔴 拦截数据, ⚪ 绕过规则]}
+  # 分隔,下面是作为别的规则组的依赖的规则组
+  - {name: 🔴 拦截数据, type: select, proxies: [REJECT-DROP, REJECT]}
+  - {name: ⚪ 绕过规则, type: select, proxies: [PASS], hidden: true}
+  - {name: 🌐 绕过代理, type: select, proxies: [DIRECT], hidden: true}
+  - {name: 🌸 自动切换, type: url-test, include-all-providers: true, tolerance: 5, hidden: true}
+  - {name: 🇺🇸 美国, type: url-test, include-all-providers: true, tolerance: 5, filter: "(?i)🇺🇸|🇺🇲|美|United States|UnitedStates|America", hidden: true}
+  - {name: 🇯🇵 日本, type: url-test, include-all-providers: true, tolerance: 5, filter: "(?i)🇯🇵|日本|Japan|Nippon|Nihon", hidden: true}
+  - {name: 🇨🇳 台湾, type: url-test, include-all-providers: true, tolerance: 5, filter: "(?i)🇹🇼|台|Taiwan|Formosa", hidden: true}
+  - {name: 🇸🇬 新加坡, type: url-test, include-all-providers: true, tolerance: 5, filter: "(?i)🇸🇬|新|Singapore|Singapura", hidden: true}
+  - {name: 🇭🇰 香港, type: url-test, include-all-providers: true, tolerance: 5, filter: "(?i)🇭🇰|港|Hong Kong|Hongkong", hidden: true}
+  - {name: 🇪🇺 欧洲, type: url-test, include-all-providers: true, tolerance: 5, filter: "(?i)🇬🇧|英|UK|🇫🇷|法|France|🇩🇪|德|Deu|🇮🇹|意|Italia|🇦🇺|澳|Australia", hidden: true}
+  - {name: 🌏 亚洲, type: url-test, include-all-providers: true, tolerance: 5, filter: "(?i)🇰🇷|韩|Korea|🇻🇳|越南|🇹🇷|土|Turkey|🇹🇭|泰|Thailand|🇮🇳|印|India|🇲🇾|马|Malaysia|🇵🇭|菲|Philippines|🇷🇺|俄|Russia|🇲🇽|缅|Myanmar", hidden: true}
+  - {name: 🇺🇳 其他, type: select, include-all-providers: true, filter: "(?i)^(?!.*(?:🇺🇸|🇺🇲|美|United States|UnitedStates|America|🇯🇵|日|Japan|Nippon|Nihon|🇹🇼|台|Taiwan|Formosa|🇯🇵|日|Japan|Nippon|Nihon|🇸🇬|新|Singapore|Singapura|🇭🇰|港|Hong Kong|Hongkong|🇪🇺|欧洲|UK|🇬🇧|英|UK|🇫🇷|法|France|🇩🇪|德|Deu|🇮🇹|意|Italia|🇦🇺|澳|Australia|🇰🇷|韩|Korea|🇻🇳|越南|🇹🇷|土|Turkey|🇹🇭|泰|Thailand|🇮🇳|印|India|🇲🇾|马|Malaysia|🇵🇭|菲|Philippines|🇷🇺|俄|Russia|🇲🇽|缅|Myanmar)).*", hidden: true}
+
+#################### 规则集合 ####################
+rule-anchor:
+  rule_classical: &rule_classical {type: http, behavior: classical, format: yaml}
+  rule_domain: &rule_domain {type: http, behavior: domain, format: yaml}
+  rule_ipcidr: &rule_ipcidr {type: http, behavior: ipcidr, format: yaml}
+
+#################### 路由规则 ####################
+rules:
+  - OR,((AND,((NETWORK,tcp),(DST-PORT,53))),(AND,((NETWORK,udp),(DST-PORT,53)))),⚫ DNS劫持 # 劫持 DNS
+  - OR,((GEOSITE,category-httpdns),(DOMAIN-KEYWORD,httpdns)),🔴 拦截数据 # 屏蔽 httpdns ,可解决一些页面加载不出来
+  - OR,((GEOSITE,category-ads-all),(GEOSITE,category-public-tracker)),🔴 拦截数据 # 包含了常见的广告域名、广告联盟的域名域名和跟踪器域名
+  - OR,((GEOSITE,private),(GEOIP,private,no-resolve)),🌐 绕过代理 # 包含私有 IP
+  - OR,((AND,((DST-PORT,443),(NETWORK,udp),(GEOSITE,!cn))),(AND,((DST-PORT,443),(NETWORK,udp),(GEOIP,!cn)))),🇶 Q U I C # 国内以外的 QUIC
+  - GEOSITE,bilibili,📺 哔哩哔哩
+  - OR,((GEOSITE,netflix),(GEOSITE,tiktok),(GEOSITE,youtube)),📺 国际媒体
+  - GEOSITE,openai,🤖 人工智能
+  - GEOSITE,googlefcm,✉ 谷歌推送
+  - GEOSITE,onedrive,🌐 绕过代理
+  - GEOSITE,category-games@cn,🌐 绕过代理
+  - OR,((GEOSITE,cn),(GEOIP,cn)),🌐 绕过代理
+  - GEOSITE,google@cn,🧭 代理规则
+  - GEOSITE,microsoft@cn,🧭 代理规则
+  - IN-TYPE,INNER,🧭 代理规则
+  - MATCH,🐋 漏网之鱼
+
+#################### 子规则 ####################
+# sub-rules:
+
+#################### NTP ####################
+# ntp:
+  # enable: true # 是否启用 NTP 服务 true/false
+  # write-to-system: true # 是否同步至系统时间,需要 root、管理员模式运行
+  # server: "ntp.aliyun.com" # NTP 服务地址
+  # port: 123 # NTP 服务端口,默认 123
+  # interval: 60 # 同步时间间隔,单位 min ,默认 30 min
+
+#################### 监听 ####################
+# listeners:
+
+#################### 流量隧道 ####################
+# tunnels:
